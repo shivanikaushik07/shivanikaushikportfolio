@@ -36,10 +36,11 @@ const WORKS = { scale: 1.1, x: 50, y: 55, tx: 50, ty: 50 }
 const NODE_SCREEN = { tx: 30, ty: 50 }
 const NODE_SCALE = 5.0
 
-// On a phone the résumé runs full width, so there is no empty side to push the bandage
-// into — a zoom would only hide it behind the text cards. Stay on the wide cover instead
-// and let it be the background the cards sit on. Matches the ≤640px block in styles.css.
-const NARROW = '(max-width: 640px)'
+// Below this the résumé runs over the artwork rather than beside it, so there is no empty
+// side to push the bandage into — a zoom would only hide it behind the text. Stay on the
+// wide cover and let it be the background the text sits on. Keep in step with the
+// matching ≤900px block in styles.css, which gives that text its backing panel.
+const NARROW = '(max-width: 900px)'
 
 export default function Scene2D() {
   const wrapRef = useRef<HTMLDivElement>(null)

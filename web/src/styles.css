@@ -2338,3 +2338,22 @@ canvas {
   opacity: 0;
   pointer-events: none;
 }
+
+/* ── Narrow layouts (≤900px) ───────────────────────────────────────────────
+   Below this width the résumé sits on top of the artwork instead of beside it,
+   and Scene2D stops zooming (same breakpoint there). Without the empty side the
+   text needs its own backing, so each entry gets a panel. Desktop is untouched
+   and keeps the clean, unscrimmed look. */
+@media (max-width: 900px) {
+  .tl-body {
+    background: rgba(9, 12, 18, 0.74);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 16px;
+    padding: 18px 20px;
+  }
+  /* The section heading sits outside tl-body, so it gets a stroke tight to the
+     glyphs rather than a panel of its own */
+  .resume-title {
+    text-shadow: 0 0 2px rgba(0, 0, 0, 0.95), 0 1px 3px rgba(0, 0, 0, 0.75);
+  }
+}
