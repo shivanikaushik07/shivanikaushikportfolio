@@ -1,16 +1,16 @@
-// 作品详情内容规范：每个作品一个 markdown 文件，放在 src/content/works/<slug>.md
+// Work detail spec: one markdown file per work, at src/content/works/<slug>.md
 //
-// frontmatter（--- 之间）字段（均可选）：
-//   title   标题（缺省回退列表里的作品名）
-//   banner  顶部 banner 图路径（如 /works/guqin/banner.jpg；缺省用渐变占位）
-//   year    年份
-//   role    角色 / 担当
-//   tags    标签数组：[互动项目, 虎啸奖]
-//   link    外链（“访问作品”按钮）
-// 正文（frontmatter 之后）写 markdown：文字 / 图 ![](...) / 视频 <video src=...>。
+// Frontmatter fields (between the --- lines), all optional:
+//   title   heading (falls back to the work's name in the list)
+//   banner  path to the top banner image (e.g. /works/budan/banner.jpg; a gradient if absent)
+//   year    year
+//   role    role / credit
+//   tags    array of tags: [Branding, Packaging]
+//   link    external URL (the "visit" button)
+// The body after the frontmatter is markdown: text, images ![](...), video <video src=...>.
 //
-// 资源（图/视频）放到 public/works/ 下，用 /works/... 绝对路径引用。
-// 列表（works.ts 的 item）通过 `slug` 关联到此处的 md；没有 slug 的 item 仍走占位详情。
+// Put media under public/works/ and reference it with absolute /works/... paths.
+// An item in works.ts links here by `slug`; items without one fall back to the placeholder detail.
 
 export interface WorkDoc {
   slug: string
@@ -23,14 +23,14 @@ export interface WorkDoc {
   body: string
 }
 
-// 构建期把全部 md 作为原始字符串内联进来
+// Inline every md file as a raw string at build time
 const files = import.meta.glob('../content/works/*.md', {
   query: '?raw',
   import: 'default',
   eager: true,
 }) as Record<string, string>
 
-// 极简 frontmatter 解析（key: value，数组用 [a, b]）——避免引入依赖 Buffer 的库
+// Minimal frontmatter parser (key: value, arrays as [a, b]) to avoid a Buffer-dependent library
 function parseFrontmatter(raw: string): {
   data: Record<string, string | string[]>
   body: string

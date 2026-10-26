@@ -1,5 +1,5 @@
-// 移植自 cineko 仓库的 ZooopLogo（自包含 SVG，用 currentColor 取色）。
-// animated 时三个 O 的圆点绕各自字心旋转。
+// ZooopLogo ported from the cineko repo: self-contained SVG, coloured via currentColor.
+// When animated, the dot in each of the three O's orbits that letter's centre.
 export function ZooopLogo({ variant = 'horizontal', animated = false, ...props }) {
   if (variant === 'square') {
     return (

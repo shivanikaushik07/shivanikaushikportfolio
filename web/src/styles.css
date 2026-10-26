@@ -14,7 +14,8 @@
 
 html {
   scroll-behavior: smooth;
-  /* 禁用触底/触顶橡皮筋回弹：必须落在根滚动元素 html 上才在各浏览器可靠生效 */
+  /* Disable rubber-band overscroll. It only works reliably across browsers on the root
+   scrolling element, html */
   overscroll-behavior: none;
 }
 
@@ -29,7 +30,8 @@ body,
 
 body {
   overflow-x: hidden;
-  /* 与 html 一致，双保险禁用橡皮筋回弹：滚到作品集最后一屏时不再被上移又弹回，紧贴底部 */
+  /* Same as html, belt and braces against rubber-banding: the last works screen no longer
+   lifts and springs back, it sits flush with the bottom */
   overscroll-behavior: none;
 }
 
@@ -37,12 +39,12 @@ canvas {
   display: block;
 }
 
-/* ---------- 固定 3D 背景 + 滚动渐暗 + 内容层 ---------- */
+/* ---------- Fixed background + scroll darkening + content layer ---------- */
 .scene-bg {
   position: fixed;
   inset: 0;
   z-index: 0;
-  pointer-events: none; /* 事件穿透，滚动与视差互不干扰 */
+  pointer-events: none; /* Click-through, so scrolling and parallax don't interfere */
 }
 
 .scene-bg canvas {
@@ -55,8 +57,8 @@ canvas {
   inset: 0;
   z-index: 1;
   pointer-events: none;
-  /* 仅右侧（时间轴所在）压暗，向左平滑渐隐。
-     配合 framer 上限 0.4：时间轴左缘 alpha≈0.75(→0.3)、右侧 1.0(→0.4) */
+  /* Darken only the right side, where the timeline is, fading smoothly to the left.
+     With framer's 0.4 ceiling: alpha ≈ 0.75 (→0.3) at the timeline's left edge, 1.0 (→0.4) right */
   background: linear-gradient(
     to right,
     rgba(10, 14, 22, 0) 20%,
@@ -70,8 +72,9 @@ canvas {
   z-index: 10;
 }
 
-/* 固定磨砂右轨：上/右/下溢出屏幕外（无可见边），仅左缘柔化淡入场景；
-   blur 取背后的场景，文字在 .content(z10) 之上保持清晰 */
+/* Fixed frosted right rail: it overflows top/right/bottom so no edge shows, and only its
+   left edge softens into the scene. The blur samples the scene behind it; text sits on
+   .content (z10) and stays sharp */
 .glass-rail {
   position: fixed;
   top: -2px;
@@ -87,18 +90,19 @@ canvas {
   mask: linear-gradient(to right, transparent 0%, #000 46%);
 }
 
-/* ---------- 首屏 ---------- */
+/* ---------- Hero ---------- */
 .hero {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
+  /* Text at the top: flex-end used to drop it onto her face, where it couldn't be read */
+  justify-content: flex-start;
   align-items: center;
-  /* 标题正文略下移 */
+  padding-top: 8vh;
   padding-bottom: 6vh;
 }
 
-/* 首屏底部渐变底色（滚动后由 framer 控制淡出） */
+/* Gradient under the hero; framer fades it out on scroll */
 .hero-gradient {
   position: fixed;
   left: 0;
@@ -107,12 +111,12 @@ canvas {
   height: 35vh;
   z-index: 2;
   pointer-events: none;
-  /* 深墨绿；底部(100vh)alpha 0.5，向上到 65vh 处淡为 0（底部 35vh 渐隐带） */
+  /* Deep ink green: alpha 0.5 at the bottom (100vh), fading to 0 by 65vh — a 35vh band */
   background: linear-gradient(to top, rgba(9, 33, 22, 0.5) 0%, rgba(9, 33, 22, 0) 100%);
 }
 
 .scroll-cue {
-  margin-top: 3vh;
+  margin-top: auto;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -123,12 +127,11 @@ canvas {
   color: var(--muted);
   pointer-events: none;
 }
-
 .scroll-cue-label {
   animation: cueLabelPulse 2.4s ease-in-out infinite;
 }
 
-/* 竖向轨道 + 循环向下流动的光点 */
+/* Vertical track with a dot of light flowing down it on a loop */
 .scroll-cue-track {
   position: relative;
   width: 1px;
@@ -177,7 +180,7 @@ canvas {
   }
 }
 
-/* ---------- 首屏装饰画框 + 角标元数据 ---------- */
+/* ---------- Hero decorative frame + corner metadata ---------- */
 .hero-chrome {
   --m: clamp(16px, 2.4vh, 30px);
   position: fixed;
@@ -187,14 +190,14 @@ canvas {
   font-family: 'Helvetica Neue', 'Chiron GoRound TC', 'PingFang SC', system-ui, sans-serif;
 }
 
-/* 发丝内框 */
+/* Hairline inner frame */
 .hero-frame {
   position: absolute;
   inset: var(--m);
   border: 1px solid rgba(244, 241, 234, 0.1);
 }
 
-/* 四角定位标 “+” */
+/* The "+" registration marks at the four corners */
 .hero-mark {
   position: absolute;
   font-size: 13px;
@@ -222,7 +225,7 @@ canvas {
   transform: translate(50%, 50%);
 }
 
-/* 角标元数据小字 */
+/* Small print in the corners */
 .hero-meta {
   position: absolute;
   font-size: clamp(9px, 0.9vw, 11px);
@@ -258,20 +261,33 @@ canvas {
   letter-spacing: 0.3em;
 }
 
-/* 窄屏隐藏侧边竖排，避免拥挤 */
+/* Hide the vertical side text on narrow screens to avoid crowding */
 @media (max-width: 640px) {
   .hm-right {
     display: none;
   }
 }
 
-/* ---------- About 叠层（标题 Rancho + 正文 Cormorant Upright） ---------- */
+/* ---------- About overlay (Rancho heading + Cormorant Upright body) ---------- */
 .about {
+  position: relative;
+  /* Its own stacking context, so the z-index:-1 scrim below can't fall behind the scene */
+  isolation: isolate;
   text-align: center;
   pointer-events: none;
   padding: 0 24px;
 }
-/* 入场动画放内层：其 fill:both 只锁内层 opacity，不影响外层滚动 opacity */
+/* The top of the artwork is dark but busy with hair and stickers; a very faint radial
+   scrim underneath keeps the text readable regardless */
+.about::before {
+  content: '';
+  position: absolute;
+  inset: -10% -14%;
+  z-index: -1;
+  background: radial-gradient(60% 60% at 50% 45%, rgba(10, 11, 13, 0.82), rgba(10, 11, 13, 0));
+}
+/* Intro animation on the inner element: its fill:both locks only the inner opacity and
+   leaves the outer scroll-driven opacity alone */
 .about-intro {
   animation: fadeDown 1.8s ease both;
 }
@@ -289,14 +305,15 @@ canvas {
 .about-body {
   margin: 0.5em auto 0;
   max-width: min(660px, 88vw);
-  font-family: 'Cormorant Upright', 'Chiron GoRound TC', 'PingFang SC', 'Microsoft YaHei', serif;
-  font-weight: 500;
-  font-size: clamp(8px, 1.05vw, 16px);
-  line-height: 1.2;
+  font-family: 'Nixie One', 'Chiron GoRound TC', 'PingFang SC', 'Microsoft YaHei', serif;
+  font-weight: 400;
+  font-size: clamp(8px, 0.92vw, 13px);
+  line-height: 1.45;
   color: var(--ink);
 }
 
-/* 正文内 ZOOOP 链接：容器是 pointer-events:none，链接需单独开启可点 */
+/* ZOOOP link in the body: the container is pointer-events:none, so the link has to
+   re-enable clicks for itself */
 .about-link {
   pointer-events: auto;
   color: inherit;
@@ -310,7 +327,8 @@ canvas {
   border-bottom-color: #ffd9b3;
 }
 
-/* 中文正文：拉丁衬线字体不含汉字，切到系统中文字体并放大行距 */
+/* Chinese body text: the Latin serif has no CJK glyphs, so switch to a system Chinese
+   face and open up the line height */
 .about[lang='zh'] .about-body {
   font-family: 'Chiron GoRound TC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
   font-weight: 400;
@@ -319,7 +337,7 @@ canvas {
   letter-spacing: 0.02em;
 }
 
-/* ---------- 右上角中英切换 ---------- */
+/* ---------- Language toggle, top right ---------- */
 .lang-toggle {
   position: fixed;
   top: 16px;
@@ -346,14 +364,15 @@ canvas {
   border-color: rgba(244, 241, 234, 0.3);
 }
 
-/* ---------- 履历时间轴 ---------- */
+/* ---------- Résumé timeline ---------- */
 .resume {
-  /* 正文与 resume 间距拉大约一倍 */
+  /* Roughly double the gap between the body text and the résumé */
   padding: 20vh 24px 20vh;
 }
 
 .resume-title {
-  /* 与时间轴同宽同位，左对齐（标题左边缘对齐时间轴左边缘） */
+  /* Same width and position as the timeline, left-aligned so the heading's left edge
+   lines up with the timeline's */
   width: min(480px, 90vw);
   margin: 0 6vw 0 auto;
   text-align: left;
@@ -367,11 +386,11 @@ canvas {
 .timeline {
   position: relative;
   width: min(480px, 90vw);
-  /* 靠右排布：左侧留给 3D 模型，时间轴贴画面右侧 */
+  /* Pushed right: the left is left clear for the illustration, the timeline hugs the right */
   margin: 8vh 6vw 0 auto;
 }
 
-/* 竖向时间线 */
+/* The vertical timeline */
 .timeline::before {
   content: '';
   position: absolute;
@@ -385,13 +404,14 @@ canvas {
 .tl-entry {
   position: relative;
   padding-left: 34px;
-  /* 拉长节点间距：每条履历约占一屏，便于相机随滚动依次聚焦对应锚点 */
+  /* Stretch the spacing between nodes so each entry takes about a screen, which lets the
+   view focus its anchor in turn as you scroll */
   padding-bottom: 46vh;
 }
 
 .tl-entry:last-child {
-  /* 末条（zooop）尾部空间：与 .resume 底部 padding 合计约 70vh，
-     使滚到底时末条顶部正好停在视口 30vh（NODE_LINE）处、动画走满第 250 帧 */
+  /* Tail space after the last entry: together with .resume's bottom padding, about 70vh,
+     so scrolling to the bottom parks the last entry's top at the activation line */
   padding-bottom: 38vh;
 }
 
@@ -427,7 +447,8 @@ canvas {
   color: var(--ink);
 }
 
-/* HOTSAR / 坏打印机 logo：黑色线稿放在米色卡片上，保证可见且保留品牌原色 */
+/* HOTSAR / broken-printer logo: black line art on a cream card, so it stays visible and
+   keeps the brand's own colour */
 .tl-logo-chip {
   flex: none;
   display: inline-flex;
@@ -489,7 +510,7 @@ canvas {
   color: var(--ink);
 }
 
-/* 自媒体头像 logo */
+/* Avatar logo */
 .tl-group-logo {
   flex: none;
   width: 36px;
@@ -513,7 +534,7 @@ canvas {
   color: var(--muted);
 }
 
-/* 平台 logo 一排 */
+/* A row of platform logos */
 .tl-logos {
   display: flex;
   gap: 12px;
@@ -546,7 +567,7 @@ canvas {
   transform: translateY(-2px);
 }
 
-/* ZOOOP 动态 logo */
+/* Animated ZOOOP logo */
 .zooop-logo-link {
   pointer-events: auto;
   display: inline-flex;
@@ -564,13 +585,13 @@ canvas {
   width: auto;
 }
 
-/* 中文履历：行距放宽一点更耐读 */
+/* Chinese résumé: a little more line height reads better */
 .resume[lang='zh'] .tl-points li,
 .resume[lang='zh'] .tl-role {
   line-height: 1.75;
 }
 
-/* ---------- 顶部署名小字 ---------- */
+/* ---------- Byline small print at the top ---------- */
 .credit {
   position: fixed;
   top: 22px;
@@ -583,7 +604,8 @@ canvas {
   z-index: 11;
   pointer-events: none;
   white-space: nowrap;
-  /* 用 flex 居中而非 translateX：fadeDown 会改写 transform，避免抢占导致右偏 */
+  /* Centre with flex rather than translateX: fadeDown rewrites transform, and letting it
+   win would push this to the right */
   animation: fadeDown 1.9s ease both;
 }
 
@@ -593,7 +615,7 @@ canvas {
   letter-spacing: 0.38em;
   text-transform: uppercase;
   color: var(--muted);
-  /* 抵消尾随字距，保证整体视觉居中 */
+  /* Cancel the trailing letter-space so it looks optically centred */
   margin-right: -0.38em;
 }
 
@@ -609,11 +631,11 @@ canvas {
   font-weight: 400;
   letter-spacing: 0.18em;
   color: var(--ink);
-  /* 抵消尾随字距，保证整体视觉居中 */
+  /* Cancel the trailing letter-space so it looks optically centred */
   margin-right: -0.18em;
 }
 
-/* ---------- 入场标题 ---------- */
+/* ---------- Intro title ---------- */
 .intro {
   position: fixed;
   top: 8vh;
@@ -648,7 +670,7 @@ canvas {
   letter-spacing: 0.06em;
 }
 
-/* ---------- 详情面板 ---------- */
+/* ---------- Detail panel ---------- */
 .detail {
   position: fixed;
   top: 0;
@@ -777,7 +799,7 @@ canvas {
   opacity: 0.9;
 }
 
-/* ---------- 提示 / 角标 ---------- */
+/* ---------- Cues / corner marks ---------- */
 .hint {
   position: fixed;
   bottom: 28px;
@@ -825,16 +847,18 @@ canvas {
   }
 }
 
-/* ---------- 作品集：编辑式索引 + 全屏接管 ---------- */
+/* ---------- Works: editorial index + full-screen takeover ---------- */
 .works {
   position: relative;
   z-index: 10;
-  /* 横向滑动画廊：竖滚 pin 转横移；暗色由固定 .stage-fog 蒙层随滚动渐暗+模糊 3D */
+  /* Horizontally sliding gallery: vertical scroll is pinned and turned into horizontal
+   travel. The darkening comes from the fixed .stage-fog overlay */
   --wk-card-w: min(880px, 78vw);
 }
 
-/* 固定在 3D 之上的蒙层：进入作品区时随滚动逐渐变暗 + 模糊背景，
-   位于 canvas 之上、内容(.content z10)之下，故只虚化 3D、不影响文字 */
+/* Overlay fixed above the scene: darkens and blurs the background as you scroll into the
+   works section. It sits above the artwork and below .content (z10), so it blurs the
+   scene without touching the text */
 .stage-fog {
   position: fixed;
   inset: 0;
@@ -846,7 +870,7 @@ canvas {
   position: relative;
 }
 
-/* sticky 钉住一屏，内部 track 随竖滚横移 */
+/* Sticky for one screen while the track inside moves horizontally with vertical scroll */
 .wk-gallery-sticky {
   position: sticky;
   top: 0;
@@ -860,15 +884,16 @@ canvas {
   display: flex;
   align-items: stretch;
   height: 100%;
-  /* 板块间无 gap，边到边相连 */
-  /* 起始整排推到视口右缘外：左留白 = 一整屏，滚动时卡片从右侧依次滑入 */
+  /* No gap between sections; they meet edge to edge */
+  /* Start the whole row off the right edge of the viewport: the left padding is a full
+   screen, so cards slide in from the right as you scroll */
   padding-left: 100vw;
   padding-right: 0;
   will-change: transform;
 }
 
-/* 全高板块：单栏（编号 + 标题 + 作品清单）。
-   标题固定在顶部偏下同一高度（flex-start，不随清单长短漂移） */
+/* Full-height section: one column (number + title + work list). The title is pinned at
+   the same height near the top (flex-start) so it doesn't drift with list length */
 .wk-card {
   flex: none;
   display: flex;
@@ -878,10 +903,10 @@ canvas {
   width: var(--wk-card-w);
   height: 100%;
   padding: clamp(56px, 11vh, 132px) clamp(40px, 5vw, 76px) clamp(40px, 7vh, 80px);
-  /* 去圆角，相邻处以左边框作分隔 */
+  /* No rounded corners; a left border separates neighbours */
   border: none;
   border-left: 1px solid var(--line);
-  /* 不透明实底（无 backdrop-filter）：横移时不实时模糊背景，避免卡顿 */
+  /* Opaque background, no backdrop-filter: blurring live during horizontal travel stutters */
   background: rgba(13, 17, 25, 0.66);
   color: var(--ink);
   text-align: left;
@@ -890,7 +915,8 @@ canvas {
   border-right: 1px solid var(--line);
 }
 
-/* 小横图：右侧错落（align-self 右对齐 + 内缩留白），不抢主体 */
+/* Small landscape image, offset to the right (align-self plus inset padding) so it doesn't
+   compete with the main subject */
 .wk-card-cover {
   position: relative;
   flex: none;
@@ -909,21 +935,6 @@ canvas {
   object-fit: cover;
   display: block;
 }
-.wk-card-cover-ph {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  background: radial-gradient(120% 120% at 30% 25%, rgba(48, 55, 60, 0.5), rgba(29, 33, 36, 0.98));
-}
-.wk-card-cover-no {
-  font-family: 'Cormorant Upright', 'Chiron GoRound TC', 'PingFang SC', serif;
-  font-size: clamp(40px, 7vw, 88px);
-  font-weight: 600;
-  line-height: 1;
-  color: rgba(244, 241, 234, 0.16);
-}
-
 .wk-card-head {
   flex: none;
 }
@@ -952,13 +963,14 @@ canvas {
   color: var(--muted);
 }
 
-/* 卡内清单区：超高时内部不滚动（避免与横移抢滚轮），靠字号/留白容纳 */
+/* The list area inside a card doesn't scroll when it overflows — that would fight the
+   horizontal travel for the wheel. Type size and whitespace have to accommodate it */
 .wk-card-body {
   flex: none;
 }
 
 
-/* 画廊角标题 / 进度点 / 提示 */
+/* Gallery corner title / progress dots / cues */
 .wk-gallery-title {
   position: absolute;
   top: clamp(16px, 4vh, 40px);
@@ -972,7 +984,7 @@ canvas {
   pointer-events: none;
 }
 
-/* 横移进度条（motion scaleX 驱动，无重渲染） */
+/* Horizontal progress bar, driven by motion scaleX so nothing re-renders */
 .wk-progress {
   position: absolute;
   bottom: clamp(22px, 5vh, 50px);
@@ -1006,7 +1018,7 @@ canvas {
   pointer-events: none;
 }
 
-/* 极简清单 */
+/* Minimal list */
 .wk-list {
   list-style: none;
   margin: 0;
@@ -1019,7 +1031,7 @@ canvas {
   border-bottom: none;
 }
 
-/* 整行按钮：名靠左、数据靠右；hover 暖色微缩进 */
+/* Full-row button: name left, meta right; a warm tint and slight indent on hover */
 .wk-line-btn {
   display: flex;
   align-items: baseline;
@@ -1054,7 +1066,7 @@ canvas {
   color: #ffd9b3;
 }
 
-/* 右侧数据：播放量(暖色) + 标签(弱化)，以 · 连排 */
+/* Meta on the right: view count (warm) and tags (muted), joined by · */
 .wk-line-meta {
   flex: none;
   display: flex;
@@ -1084,7 +1096,7 @@ canvas {
   color: rgba(244, 241, 234, 0.3);
 }
 
-/* 分组（其他板块）：小标题 + 同款清单 */
+/* Groups, used by other sections: a subheading plus the same list */
 .wk-sub {
   margin-top: clamp(28px, 4vh, 44px);
 }
@@ -1099,7 +1111,7 @@ canvas {
   margin-bottom: 6px;
 }
 
-/* 底部小字：奖项 / 技术 */
+/* Small print at the bottom: awards / tech */
 .wk-foot {
   margin-top: clamp(32px, 5vh, 56px);
   padding-top: clamp(20px, 3vh, 30px);
@@ -1127,12 +1139,12 @@ canvas {
   letter-spacing: 0.04em;
 }
 
-/* 中文作品区：行距放宽 */
+/* Chinese works section: more line height */
 .works[lang='zh'] .wk-line-name {
   line-height: 1.5;
 }
 
-/* ---------- 作品全屏沉浸详情 ---------- */
+/* ---------- Full-screen work detail ---------- */
 .wk-detail-backdrop {
   position: fixed;
   inset: 0;
@@ -1146,18 +1158,19 @@ canvas {
   position: fixed;
   inset: clamp(16px, 5vh, 56px) clamp(16px, 6vw, 120px);
   z-index: 70;
-  /* 指定背景色 #1d2124（深炭蓝灰） */
+  /* Explicit background #1d2124, a dark charcoal blue-grey */
   background: rgba(29, 33, 36, 0.98);
   border: 1px solid var(--line);
   border-radius: 20px;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   box-shadow: 0 50px 140px rgba(0, 0, 0, 0.6);
-  /* 弱化滚动条（Firefox） */
+  /* Understated scrollbar (Firefox) */
   scrollbar-width: thin;
   scrollbar-color: rgba(244, 241, 234, 0.16) transparent;
 }
-/* 弱化滚动条（WebKit）：细、透明轨道、半透明圆角滑块，hover 略显 */
+/* Understated scrollbar (WebKit): thin, transparent track, translucent rounded thumb that
+   brightens slightly on hover */
 .wk-detail::-webkit-scrollbar {
   width: 8px;
 }
@@ -1198,17 +1211,24 @@ canvas {
   transform: rotate(90deg);
 }
 
-/* 顶部 banner：图铺满；缺省时低饱和墨绿渐变占位 + 虚字 */
+/* Top banner: the image fills it; without one, a desaturated green gradient and ghost type */
+/* Show the banner at its own aspect ratio. It used to be a fixed height with
+   object-fit:cover, which cropped the top and bottom — that's where the title went */
+/* Every work's banner uses the PI image's ratio (2000×775), so at a given screen width
+   they are all exactly the same height. PI's own image is that ratio and loses nothing;
+   the rest are centred and covered, so keep their subject near the middle */
 .wk-detail-banner {
   position: relative;
-  height: clamp(180px, 42vh, 460px);
+  aspect-ratio: 2000 / 775;
+  overflow: hidden;
   background: #1d2124;
 }
 .wk-detail-banner img {
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  display: block;
+  object-position: center;
 }
 .wk-detail-banner.is-ph {
   display: grid;
@@ -1226,7 +1246,7 @@ canvas {
   letter-spacing: 0.02em;
 }
 
-/* 正文文章：居中窄栏，舒适阅读宽度 */
+/* The article: a centred narrow column at a comfortable reading width */
 .wk-detail-article {
   max-width: 760px;
   margin: 0 auto;
@@ -1271,7 +1291,7 @@ canvas {
   color: rgba(244, 241, 234, 0.8);
 }
 
-/* markdown 正文排版 */
+/* Markdown body typography */
 .wk-md {
   font-size: clamp(14px, 1.4vw, 16px);
   line-height: 1.8;
@@ -1311,6 +1331,7 @@ canvas {
 .wk-md li {
   margin: 0.4em 0;
 }
+/* No frame around work images: the image is the work, and a stroke only adds a container */
 .wk-md img,
 .wk-md video {
   display: block;
@@ -1318,7 +1339,6 @@ canvas {
   height: auto;
   margin: 1.6em 0;
   border-radius: 12px;
-  border: 1px solid var(--line);
 }
 .wk-md blockquote {
   margin: 1.4em 0;
@@ -1339,7 +1359,7 @@ canvas {
   background: rgba(255, 255, 255, 0.06);
 }
 
-/* 访问外链按钮 */
+/* External link button */
 .wk-detail-link {
   display: inline-flex;
   align-items: center;
@@ -1360,7 +1380,8 @@ canvas {
   gap: 0.9em;
 }
 
-/* 详情占位组件：开源版无 md 内容时，演示详情页支持的「图片/视频 + 跳转按钮」等组件 */
+/* Placeholder components: with no md content, demonstrate what a detail page supports —
+   an image/video placeholder and a jump button */
 .wk-detail-ph-img {
   display: grid;
   place-items: center;
@@ -1394,7 +1415,7 @@ canvas {
   gap: 0.6em;
 }
 
-/* ---------- 加载遮罩：模型全部加载完成前覆盖全屏（进度环，无文字）---------- */
+/* ---------- Loading mask: covers the screen until the artwork loads (ring, no text) ---------- */
 .loading-screen {
   position: fixed;
   inset: 0;
@@ -1448,11 +1469,13 @@ canvas {
 }
 
 /* ==================================================================
-   移动端适配（≤640px）——置于文件末尾，确保覆盖前面同优先级的基础规则
+   Mobile (≤640px) — kept at the end of the file so it overrides the
+   base rules above at the same specificity
    ================================================================== */
 @media (max-width: 640px) {
-  /* 3) 时间轴文案可读性：每条履历文字落在一块圆角深色半透卡片（tl-body）上，
-        与明亮杂乱的 3D 背景清晰分离；标题不在卡片内，单独加紧贴字缘的 1px 暗描边。 */
+  /* 3) Timeline readability: each entry's text sits on a rounded, semi-transparent dark card
+        (tl-body) to separate it from the bright, busy background. The heading is outside the
+        card and gets its own 1px dark stroke tight to the glyphs instead. */
   .tl-body {
     background: rgba(10, 13, 20, 0.4);
     border-radius: 16px;
@@ -1462,14 +1485,15 @@ canvas {
     text-shadow: 0 0 1px rgba(0, 0, 0, 0.9), 0 1px 2px rgba(0, 0, 0, 0.6);
   }
 
-  /* 移动端文案满屏呈现，右侧磨砂玻璃轨无意义（只会糊掉半屏背景）：隐藏 */
+  /* On mobile the text fills the screen, so the frosted right rail serves no purpose and
+     would only smear half the background: hide it */
   .glass-rail {
     display: none;
   }
 
-  /* 2) 作品集：由「竖滚 pin + 横移」改为上下堆叠的普通滚动 */
+  /* 2) Works: the pinned vertical-to-horizontal scroll becomes ordinary stacked scrolling */
   .wk-gallery {
-    height: auto !important; /* 覆盖内联 calc(100vh + range) */
+    height: auto !important; /* Override the inline calc(100vh + range) */
   }
   .wk-gallery-sticky {
     position: static;
@@ -1480,8 +1504,8 @@ canvas {
   .wk-track {
     flex-direction: column;
     height: auto;
-    padding-left: 0; /* 取消右缘外整屏留白 */
-    transform: none !important; /* 覆盖 framer-motion 的 translateX */
+    padding-left: 0; /* Drop the full-screen padding off the right edge */
+    transform: none !important; /* Override framer-motion's translateX */
   }
   .wk-card {
     width: 100%;
@@ -1492,20 +1516,20 @@ canvas {
   .wk-card:last-child {
     border-right: none;
   }
-  /* 竖排下横移进度条 / 提示无意义 */
+  /* A horizontal progress bar and its cue mean nothing once stacked vertically */
   .wk-progress,
   .wk-hint {
     display: none;
   }
-  /* 画廊标题从 absolute 改为随内容排布，避免叠在首卡上；窄屏放大更醒目、
-     底部留白拉开与第一张卡的距离 */
+  /* The gallery title moves from absolute to in-flow so it can't sit on top of the first
+     card; larger on narrow screens, with bottom padding to separate it from that card */
   .wk-gallery-title {
     position: static;
     padding: clamp(16px, 4vh, 40px) clamp(24px, 6vw, 80px) clamp(20px, 5vh, 48px);
     font-size: clamp(28px, 8vw, 36px);
   }
 
-  /* 作品行：窄屏下标题与右侧数据(播放量/榜单)改为上下排，标题在上、数据在下 */
+  /* Work rows: on narrow screens the title and its right-hand meta stack, title above */
   .wk-line-btn {
     flex-direction: column;
     align-items: flex-start;
@@ -1517,7 +1541,7 @@ canvas {
     text-align: left;
   }
 
-  /* 窄屏字号整体放大一档，作品文字更醒目 */
+  /* Bump every type size up a step so the works text reads better on narrow screens */
   .wk-card-title {
     font-size: clamp(27px, 7.4vw, 36px);
   }
@@ -1530,4 +1554,785 @@ canvas {
   .wk-line-tag {
     font-size: 11.5px;
   }
+}
+
+/* ── Gallery sections (illustration / photography) ──────────────────────────
+   No work list; the whole card is an image grid. flex:1 plus grid-auto-rows:1fr fills the
+   card's remaining height, so no number of images can push it into a scrollbar. */
+.wk-card.is-gallery {
+  gap: clamp(18px, 3vh, 34px);
+}
+
+.wk-grid {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(var(--wk-cols, 3), 1fr);
+  grid-auto-rows: 1fr;
+  gap: clamp(8px, 1.2vw, 14px);
+}
+
+.wk-tile {
+  position: relative;
+  overflow: hidden;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #1d2124;
+  cursor: pointer;
+  transition: border-color 0.35s ease, transform 0.35s ease;
+}
+.wk-tile:not(.is-ph):hover {
+  transform: translateY(-2px);
+  border-color: rgba(244, 241, 234, 0.34);
+}
+
+.wk-tile img,
+.wk-tile video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.wk-tile:not(.is-ph):hover img,
+.wk-tile:not(.is-ph):hover video {
+  transform: scale(1.045);
+}
+
+.wk-tile.is-ph {
+  display: grid;
+  place-items: center;
+  cursor: default;
+  background: radial-gradient(120% 120% at 30% 25%, rgba(48, 55, 60, 0.5), rgba(29, 33, 36, 0.98));
+}
+.wk-tile-no {
+  font-family: 'Cormorant Upright', 'Chiron GoRound TC', 'PingFang SC', serif;
+  font-size: clamp(18px, 2.4vw, 30px);
+  font-weight: 600;
+  line-height: 1;
+  color: rgba(244, 241, 234, 0.16);
+}
+
+/* Lightbox.
+   Layering: reusing .wk-detail-backdrop would put its z-index:65 and backdrop-filter over
+   the image and blur it, so this has its own scrim. It also sits above the film-grain
+   overlay (z-index:100) — viewing an original shouldn't add a layer of grain. */
+.wk-lightbox-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 118;
+  background: rgba(4, 6, 10, 0.86);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.wk-lightbox {
+  --lb-px: clamp(20px, 6vw, 96px);
+  --lb-py: clamp(28px, 6vh, 80px);
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--lb-py) var(--lb-px);
+  cursor: zoom-out;
+}
+
+.wk-lb-media {
+  position: relative;
+  display: flex;
+  cursor: default;
+}
+
+/* ---------- Camera viewfinder for the lightbox (photography) ----------
+   The overlay hugs the image itself (.wk-lb-media shrink-wraps the media), so the corner
+   marks always frame the picture rather than the screen. */
+.wk-cam {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  color: rgba(255, 255, 255, 0.82);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+
+/* Rule-of-thirds lines */
+.wk-cam-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.16) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.16) 1px, transparent 1px);
+  background-size: 33.333% 100%, 100% 33.333%;
+  background-position: 33.333% 0, 0 33.333%;
+  background-repeat: repeat-x, repeat-y;
+}
+
+/* Corner framing marks */
+.wk-cam-c {
+  position: absolute;
+  width: 26px;
+  height: 26px;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+}
+.wk-cam-c.tl {
+  top: 12px;
+  left: 12px;
+  border-right: none;
+  border-bottom: none;
+}
+.wk-cam-c.tr {
+  top: 12px;
+  right: 12px;
+  border-left: none;
+  border-bottom: none;
+}
+.wk-cam-c.bl {
+  bottom: 12px;
+  left: 12px;
+  border-right: none;
+  border-top: none;
+}
+.wk-cam-c.br {
+  bottom: 12px;
+  right: 12px;
+  border-left: none;
+  border-top: none;
+}
+
+.wk-cam-tag {
+  position: absolute;
+  top: 18px;
+  left: 50px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-transform: uppercase;
+}
+.wk-cam-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #e2574c;
+  box-shadow: 0 0 8px rgba(226, 87, 76, 0.9);
+  animation: wk-cam-blink 2.4s ease-in-out infinite;
+}
+@keyframes wk-cam-blink {
+  0%,
+  45% {
+    opacity: 1;
+  }
+  55%,
+  100% {
+    opacity: 0.25;
+  }
+}
+
+.wk-cam-frame {
+  position: absolute;
+  right: 50px;
+  bottom: 18px;
+}
+
+/* Body / lens: top right */
+.wk-cam-body {
+  position: absolute;
+  top: 18px;
+  right: 50px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.62);
+}
+
+/* Exposure readout: bottom left, like the row of figures on a camera's playback screen */
+.wk-cam-exif {
+  position: absolute;
+  left: 50px;
+  bottom: 18px;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 16px;
+}
+.wk-cam-val {
+  white-space: nowrap;
+}
+
+@media (max-width: 760px) {
+  .wk-cam-tag,
+  .wk-cam-body,
+  .wk-cam-exif,
+  .wk-cam-frame {
+    left: auto;
+    right: auto;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+  }
+  .wk-cam-tag {
+    top: 14px;
+    left: 42px;
+  }
+  .wk-cam-body {
+    display: none;
+  }
+  .wk-cam-exif {
+    left: 42px;
+    bottom: 14px;
+    gap: 10px;
+  }
+  .wk-cam-frame {
+    right: 42px;
+    bottom: 14px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wk-cam-dot {
+    animation: none;
+  }
+}
+
+/* The height has to be computed from the viewport: when the parent's height is auto a
+   percentage max-height has nothing to resolve against, and a tall portrait video would
+   overflow the screen and be cut off. */
+.wk-lightbox img,
+.wk-lightbox video {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: calc(100vw - 2 * var(--lb-px));
+  max-height: calc(100vh - 2 * var(--lb-py));
+  max-height: calc(100dvh - 2 * var(--lb-py));
+  object-fit: contain;
+  border-radius: 12px;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
+}
+
+/* Paging arrows: minimal, very faint at rest, brightening on hover */
+.wk-lb-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 64px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--ink);
+  opacity: 0.45;
+  font-size: 40px;
+  line-height: 1;
+  cursor: pointer;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+.wk-lb-nav:hover {
+  opacity: 1;
+}
+.wk-lb-nav.is-prev {
+  left: clamp(4px, 1.4vw, 26px);
+}
+.wk-lb-nav.is-next {
+  right: clamp(4px, 1.4vw, 26px);
+}
+.wk-lb-nav.is-prev:hover {
+  transform: translateY(-50%) translateX(-3px);
+}
+.wk-lb-nav.is-next:hover {
+  transform: translateY(-50%) translateX(3px);
+}
+
+.wk-lb-count {
+  position: absolute;
+  left: 50%;
+  bottom: clamp(10px, 2.4vh, 26px);
+  transform: translateX(-50%);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  color: rgba(244, 241, 234, 0.45);
+}
+
+@media (max-width: 760px) {
+  .wk-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Gallery: portrait and landscape cells span extra rows or columns so their original
+   proportions survive instead of being cropped square */
+.wk-grid {
+  grid-auto-flow: row dense;
+}
+.wk-tile.is-tall {
+  grid-row: span 2;
+}
+.wk-tile.is-wide {
+  grid-column: span 2;
+}
+
+/* The custom blocks are fenced code blocks, and ReactMarkdown only replaces <code> — the
+   outer <pre> is still there. Browsers give pre a 1em margin top and bottom and
+   white-space:pre, so vertical spacing exceeded horizontal and the captions inside didn't
+   wrap. This returns pre to a transparent container. */
+.wk-md pre {
+  margin: var(--wk-img-gap) 0 0;
+  padding: 0;
+  background: none;
+  border: none;
+  white-space: normal;
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+}
+.wk-md pre:first-child {
+  margin-top: 0;
+}
+/* Vertical spacing is pre's job alone; the blocks add no margin of their own, so nothing
+   compounds */
+.wk-md pre > * {
+  margin-top: 0 !important;
+}
+
+/* A uniform 20px between images, horizontally and vertically */
+.wk-md {
+  --wk-img-gap: 20px;
+}
+
+/* ---------- Work detail: case-study blocks ----------
+   Declared in markdown as fenced code blocks (bars / rows / grid / figure);
+   see src/ui/workBlocks.tsx. Any work can use them. */
+
+/* Prototype bars: name + percentage + description */
+.wk-bars {
+  margin: 1.6em 0 0;
+}
+.wk-bar + .wk-bar {
+  margin-top: 1.5em;
+}
+.wk-bar-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+}
+.wk-bar-label {
+  font-size: 16px;
+  color: var(--ink);
+}
+.wk-bar-pct {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  color: var(--muted);
+}
+.wk-bar-track {
+  position: relative;
+  height: 1px;
+  margin-top: 10px;
+  background: rgba(244, 241, 234, 0.16);
+}
+.wk-bar-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  height: 1px;
+  background: var(--ink);
+}
+.wk-bar-desc {
+  margin: 10px 0 0;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+/* Definition rows: name + description, separated by a hairline */
+.wk-rows {
+  margin: 1.4em 0 0;
+}
+.wk-row {
+  padding: 1.1em 0;
+  border-top: 1px solid var(--line);
+}
+.wk-row:last-child {
+  border-bottom: 1px solid var(--line);
+}
+.wk-row dt {
+  font-size: 16px;
+  color: var(--ink);
+}
+.wk-row dd {
+  margin: 8px 0 0;
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--muted);
+}
+
+/* Image grid */
+.wk-imgrid {
+  display: grid;
+  grid-template-columns: repeat(var(--wk-g-cols, 2), 1fr);
+  align-items: start;
+  gap: var(--wk-img-gap);
+  margin: var(--wk-img-gap) 0 0;
+}
+.wk-imgrid figure {
+  margin: 0;
+  overflow: hidden;
+}
+/* .wk-md img gives every body image a 1.6em vertical margin. Images inside a block are
+   spaced by gap instead, so that margin has to be cleared — otherwise vertical spacing
+   gains an extra 2×25px that the horizontal gap never does. */
+.wk-imgrid img,
+.wk-imgrid video {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 0;
+}
+
+/* ratio: give a whole row one shape, so slightly mismatched source sizes still line up.
+   contain rather than cover: better a little empty edge than cropping the artwork.
+   Cells of a uniform shape get no border or background, so the padding is invisible. */
+.wk-imgrid.is-fixed figure {
+  aspect-ratio: var(--wk-g-ratio);
+}
+.wk-imgrid.is-fixed img,
+.wk-imgrid.is-fixed video {
+  height: 100%;
+  object-fit: contain;
+}
+
+/* align: height — one height across the row, widths following each image's own ratio.
+   flex-basis is 0 and flex-grow is set to the aspect ratio, so width is proportional to
+   ratio and the heights come out equal. Nothing is cropped and nothing is padded. */
+.wk-imgrid.is-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--wk-img-gap);
+  margin: var(--wk-img-gap) 0 0;
+}
+.wk-imgrid.is-row figure {
+  flex: 1 1 0;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+}
+.wk-imgrid.is-row img,
+.wk-imgrid.is-row video {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 0;
+}
+
+@media (max-width: 760px) {
+  .wk-imgrid.is-row {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+}
+
+/* A single image with a caption */
+.wk-figure {
+  margin: var(--wk-img-gap) 0 0;
+}
+.wk-figure img,
+.wk-figure video {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 0;
+}
+.wk-figure figcaption {
+  margin-top: 10px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+@media (max-width: 760px) {
+  .wk-imgrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Metrics panel: big figure, short label, hairline separators.
+   A 1px gap over a background colour draws the grid lines, which is cleaner than a
+   border on every cell. */
+.wk-metrics {
+  display: grid;
+  grid-template-columns: repeat(var(--wk-g-cols, 3), 1fr);
+  gap: 1px;
+  margin: var(--wk-img-gap) 0 0;
+  background: var(--line);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.wk-metric {
+  padding: 18px 16px;
+  background: rgba(12, 16, 24, 0.55);
+}
+.wk-metric-v {
+  font-size: clamp(22px, 2.6vw, 30px);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+.wk-metric-k {
+  margin-top: 8px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--muted);
+}
+
+/* Palette: the colour values are the content, so no border — just an inset shadow to
+   hold the edge of the lighter swatches */
+.wk-pal {
+  display: grid;
+  grid-template-columns: repeat(var(--wk-g-cols, 4), 1fr);
+  gap: 8px;
+  margin: var(--wk-img-gap) 0 0;
+}
+.wk-sw {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 2px;
+  aspect-ratio: 1 / 1.1;
+  padding: 10px;
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 1px rgba(244, 241, 234, 0.14);
+  font-size: 11px;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.9);
+}
+.wk-sw.is-light {
+  color: rgba(0, 0, 0, 0.72);
+}
+.wk-sw-name {
+  font-size: 12.5px;
+  font-weight: 500;
+}
+.wk-sw-code,
+.wk-sw-hex {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 10.5px;
+  opacity: 0.78;
+}
+
+/* Pull quote: one thin line at the left, no quotation marks.
+   The selector needs .wk-md, or the `.wk-md blockquote` rule above (0,1,1) outranks it
+   and overrides these margins and this border. */
+.wk-md .wk-quote {
+  margin: var(--wk-img-gap) 0 0;
+  padding: 0 0 0 20px;
+  border-left: 2px solid rgba(244, 241, 234, 0.3);
+}
+.wk-md .wk-quote p {
+  margin: 0;
+  font-size: clamp(16px, 1.9vw, 19px);
+  line-height: 1.6;
+  color: var(--ink);
+}
+.wk-md .wk-quote cite {
+  display: block;
+  margin-top: 12px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  font-style: normal;
+  color: var(--muted);
+}
+
+/* Small-print note: sources, terminology lists and the like, which don't belong in the body */
+.wk-note {
+  margin: 1.1em 0 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  line-height: 1.65;
+  color: var(--muted);
+}
+.wk-md .wk-note p {
+  margin: 0.5em 0 0;
+}
+.wk-md .wk-note p:first-child {
+  margin-top: 0;
+}
+
+/* Part heading: a beat for pages covering several brands or phases */
+.wk-part {
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+/* A part is the largest pause on the page and needs more space above it than an ordinary
+   block, so this outranks the blanket margin-top reset. */
+.wk-md pre > .wk-part {
+  margin-top: 3.4em !important;
+}
+
+/* Image placeholder: dashed frame and a label.
+   Work images are never bordered; the placeholder is the exception, precisely because it
+   isn't the work — the gap should be obvious at a glance. Swap the fence for grid or
+   figure once the image exists. */
+.wk-slots {
+  display: grid;
+  grid-template-columns: repeat(var(--wk-g-cols, 1), 1fr);
+  gap: var(--wk-img-gap);
+  margin: var(--wk-img-gap) 0 0;
+}
+.wk-slot {
+  display: grid;
+  place-items: center;
+  aspect-ratio: var(--wk-g-ratio, 16 / 9);
+  padding: 12px;
+  border: 1px dashed rgba(244, 241, 234, 0.2);
+  border-radius: 10px;
+  background: rgba(244, 241, 234, 0.03);
+}
+.wk-slot span {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-align: center;
+  color: rgba(244, 241, 234, 0.45);
+}
+
+@media (max-width: 760px) {
+  .wk-metrics {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .wk-pal {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .wk-slots {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Comparison matrix: competitive landscapes, feature tables and so on.
+   The body column is only ~648px and five columns of prose won't fit, so it scrolls
+   horizontally rather than shrinking the type — small type is harder to read than a scroll. */
+.wk-table-wrap {
+  /* Same width as a full-bleed image, which is the body column width; it no longer breaks
+     out. Anything that doesn't fit scrolls horizontally with the first column pinned. */
+  margin: var(--wk-img-gap) 0 0;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(244, 241, 234, 0.16) transparent;
+}
+.wk-table {
+  width: 100%;
+  /* Give every column a readable width; what doesn't fit scrolls, first column pinned */
+  min-width: 880px;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+.wk-table th,
+.wk-table td {
+  padding: 12px 14px;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--line);
+}
+.wk-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Pin the first column so the brand name stays visible while scrolling sideways.
+   A sticky cell needs an opaque background or the content passes beneath it — these
+   values are the panel background #1d2124 pre-composited with each row's tint. */
+.wk-table th:first-child,
+.wk-table td:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: #1d2124;
+  box-shadow: 1px 0 0 var(--line);
+}
+.wk-table th:first-child {
+  z-index: 2;
+  background: #26292c;
+}
+.wk-table tr.is-hi td:first-child {
+  background: #2c3032;
+}
+.wk-table th {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink);
+  background: rgba(244, 241, 234, 0.04);
+}
+.wk-table td {
+  color: var(--muted);
+}
+/* The first column holds the subject's name, so give it the body colour to anchor a scan */
+.wk-table td:first-child {
+  font-weight: 500;
+  color: var(--ink);
+  white-space: nowrap;
+}
+/* highlight: N — the "us" row */
+.wk-table tr.is-hi td {
+  background: rgba(244, 241, 234, 0.07);
+  color: var(--ink);
+}
+
+/* Body images can be clicked to enlarge: give a clear pointer cue so they don't read as
+   dead images. Videos are excluded — they have their own controls, and a click belongs
+   to playback. */
+.wk-md img,
+.wk-detail-banner img {
+  cursor: zoom-in;
+}
+
+/* ---------- 2D illustration scene (replaces the original 3D canvas) ---------- */
+.scene2d {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: #121315;
+}
+/* The cover is a full-bleed dark scene: cover the viewport at its own aspect ratio.
+   max rather than min — child elements' percentage coordinates have to land on the
+   artwork, which rules out object-fit. */
+.scene2d-stage {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: max(100vw, calc(100vh * 12599 / 8522));
+  height: max(100vh, calc(100vw * 8522 / 12599));
+  transform: translate(-50%, -50%);
+}
+/* This is the layer that scales; transform-origin sits on the stop so that point holds still */
+.scene2d-wrap {
+  position: absolute;
+  inset: 0;
+  will-change: transform;
+}
+.scene2d-art {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+
+
+
+/* A native-resolution crop laid over the face while zoomed: it shares the base image's
+   percentage coordinates, so it aligns for free. No single base image survives Retina at
+   5× magnification; only this patch needs that many pixels. */
+.scene2d-face {
+  position: absolute;
+  display: block;
+  opacity: 0;
+  pointer-events: none;
 }

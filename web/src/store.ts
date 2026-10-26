@@ -1,25 +1,29 @@
 import { create } from 'zustand'
 
-// 全站交互状态：当前展开的领域 / 悬停的领域 / 是否已进入
+// Global interaction state: which domain is open / hovered / whether the intro is done
 interface StoreState {
-  active: string | null // 当前展开的 domain id（null = 总览）
-  hovered: string | null // 悬停的 domain id
-  entered: boolean // 是否已通过入场
+  active: string | null // id of the open domain (null = overview)
+  hovered: string | null // id of the hovered domain
+  entered: boolean // has the intro been dismissed
+  sceneProgress: number // cover artwork load progress 0-100 (replaces three's LoadingManager)
   setActive: (id: string | null) => void
   setHovered: (id: string | null) => void
   enter: () => void
+  setSceneProgress: (n: number) => void
 }
 
 export const useStore = create<StoreState>((set) => ({
   active: null,
   hovered: null,
   entered: false,
+  sceneProgress: 0,
   setActive: (id) => set({ active: id }),
   setHovered: (id) => set({ hovered: id }),
   enter: () => set({ entered: true }),
+  setSceneProgress: (n) => set({ sceneProgress: n }),
 }))
 
-// 开发期调试钩子：可在 console 用 __store.getState().setActive('ads')
+// Dev hook: in the console, __store.getState().setActive('ads')
 declare global {
   interface Window {
     __store?: typeof useStore

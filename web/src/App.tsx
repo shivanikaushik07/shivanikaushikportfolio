@@ -1,67 +1,52 @@
-import { Suspense, useRef, useState } from 'react'
-import { Canvas } from '@react-three/fiber'
+import { useRef, useState } from 'react'
 import { motion, useScroll, useTransform, type MotionValue } from 'framer-motion'
-import * as THREE from 'three'
-import Scene from './scene/Scene'
-import NoiseOverlay from './ui/NoiseOverlay'
+import Scene2D from './scene/Scene2D'
+// The film-grain overlay is off. To bring it back, restore the import below and <NoiseOverlay />.
+// import NoiseOverlay from './ui/NoiseOverlay'
 import Resume from './ui/Resume'
 import Works from './ui/Works'
 import LoadingScreen from './ui/LoadingScreen'
-import { useStore } from './store'
-
-function Backdrop() {
-  // 点击空白处收起详情
-  const setActive = useStore((s) => s.setActive)
-  return (
-    <mesh position={[0, 0, -40]} onClick={() => setActive(null)}>
-      <planeGeometry args={[600, 300]} />
-      <meshBasicMaterial transparent opacity={0} depthWrite={false} />
-    </mesh>
-  )
-}
 
 type Lang = 'en' | 'zh'
 
 const COPY = {
   en: {
-    title: 'About Sen',
+    title: 'About Shivani',
     paragraphs: [
-      "I'm Sen — a creative technologist living where code meets art. I spend my days around coding, creativity, playful interaction & design, and CG work. I love studying and combining skills across different fields — to create, and to explore more possibilities.",
+      "I'm Shivani \u2014 a Brand and Communication Designer with over four years of experience building brand narratives that hold up across platforms. I lead creative teams, carry design projects from concept to execution, and grow brand visibility through branding, art direction, photography, UI/UX and motion graphics.",
+      'What I enjoy most is turning a complicated idea into a visual story \u2014 one that lines up with the business goal and still looks like the brand.',
     ],
   },
   zh: {
-    title: 'About Sen',
+    title: 'About Shivani',
     paragraphs: [
-      '我是 Sen——一个游走在代码与艺术之间的创意技术人。我常年和 Coding、创意、有趣的交互 & 设计、CG 创作等打交道，喜欢研究并组合不同领域的技能，来创造并探索更多可能性。',
+      "I'm Shivani \u2014 a Brand and Communication Designer with over four years of experience building brand narratives that hold up across platforms. I lead creative teams, carry design projects from concept to execution, and grow brand visibility through branding, art direction, photography, UI/UX and motion graphics.",
+      'What I enjoy most is turning a complicated idea into a visual story \u2014 one that lines up with the business goal and still looks like the brand.',
     ],
   },
 }
 
 function Hero({ lang, cueOpacity }: { lang: Lang; cueOpacity: MotionValue<number> }) {
   const { title, paragraphs } = COPY[lang]
-  const aboutRef = useRef(null)
-  // 触发起点提前：about 顶部位于视口 60% 处即开始（offset[0] 进度 0），到达顶部为进度 1
-  const { scrollYProgress } = useScroll({
-    target: aboutRef,
-    offset: ['start 0.6', 'start start'],
-  })
-  // 透明度在 about 顶部升到约 30vh 时归 0：起点 60%→进度 p 时顶部在 0.6×(1−p)，
-  // 令 =0.3 解得 p=0.5，故 opacity 区间 [0, 0.5]
-  const blur = useTransform(scrollYProgress, [0, 0.5], ['blur(0px)', 'blur(16px)'])
-  const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0])
-  // 视差：标题上升更快、字距随滚动拉开；正文上升慢一点
-  const titleY = useTransform(scrollYProgress, [0, 1], [0, -96])
-  const bodyY = useTransform(scrollYProgress, [0, 1], [0, -52])
-  const titleSpacing = useTransform(scrollYProgress, [0, 1], ['0.01em', '0.42em'])
+  // Drive the fade from page scroll rather than the about block's own position: once the
+  // text moved to the top of the hero it was already past the old trigger line at scrollY=0,
+  // which made the whole block start out transparent.
+  const { scrollY } = useScroll()
+  const blur = useTransform(scrollY, [0, 420], ['blur(0px)', 'blur(16px)'])
+  const opacity = useTransform(scrollY, [0, 420], [1, 0])
+  // Parallax: the heading rises faster and its letter-spacing opens up; the body rises slower
+  const titleY = useTransform(scrollY, [0, 840], [0, -96])
+  const bodyY = useTransform(scrollY, [0, 840], [0, -52])
+  const titleSpacing = useTransform(scrollY, [0, 840], ['0.01em', '0.42em'])
   return (
     <section className="hero">
       <motion.div
         className="about"
         lang={lang}
-        ref={aboutRef}
         style={{ filter: blur, opacity }}
       >
-        {/* 入场动画放内层，避免其 fill 锁住 opacity 覆盖外层滚动 opacity */}
+        {/* Intro animation goes on the inner element, so its fill can't lock opacity and
+            override the scroll-driven opacity on the outer one */}
         <div className="about-intro">
           <motion.h1 className="about-title" style={{ y: titleY, letterSpacing: titleSpacing }}>
             {title}
@@ -74,7 +59,7 @@ function Hero({ lang, cueOpacity }: { lang: Lang; cueOpacity: MotionValue<number
         </div>
       </motion.div>
       <motion.div className="scroll-cue" style={{ opacity: cueOpacity }} aria-hidden="true">
-        <span className="scroll-cue-label">{lang === 'en' ? 'SCROLL' : '向下滚动'}</span>
+        <span className="scroll-cue-label">{lang === 'en' ? 'SCROLL' : 'SCROLL DOWN'}</span>
         <span className="scroll-cue-track">
           <span className="scroll-cue-dot" />
         </span>
@@ -85,16 +70,17 @@ function Hero({ lang, cueOpacity }: { lang: Lang; cueOpacity: MotionValue<number
 
 function LangToggle({ lang, onToggle }: { lang: Lang; onToggle: () => void }) {
   return (
-    <button className="lang-toggle" onClick={onToggle} aria-label="切换语言 / Switch language">
-      {lang === 'en' ? '中文' : 'EN'}
+    <button className="lang-toggle" onClick={onToggle} aria-label="Switch language">
+      {lang === 'en' ? 'ZH' : 'EN'}
     </button>
   )
 }
 
 export default function App() {
-  const [lang, setLang] = useState<Lang>('zh')
+  const [lang, setLang] = useState<Lang>('en')
   const { scrollY } = useScroll()
-  // 作品区蒙层：以作品区顶部从视口底进入到视口中部的进度，驱动 3D 渐暗 + 模糊
+  // Works overlay: as the section's top travels from the bottom of the viewport to the middle,
+  // that progress drives the scene's darkening and blur
   const worksRef = useRef(null)
   const { scrollYProgress: worksProgress } = useScroll({
     target: worksRef,
@@ -103,66 +89,56 @@ export default function App() {
   const fogBg = useTransform(
     worksProgress,
     [0, 1],
-    ['rgba(8, 11, 18, 0)', 'rgba(8, 11, 18, 0.41)'] // 压暗减半（原 0.82）
+    ['rgba(8, 11, 18, 0)', 'rgba(8, 11, 18, 0.41)'] // half the original darkening (was 0.82)
   )
   const fogBlur = useTransform(worksProgress, [0, 1], ['blur(0px)', 'blur(10px)'])
-  // 滚动渐暗：离开首屏后压暗 3D 场景，保证履历文字可读
-  const scrimOpacity = useTransform(scrollY, [0, 520], [0, 0.4])
-  // 首屏滚动提示随之淡出
+  // Scroll darkening: dim the scene past the hero so the résumé text stays readable
+  const scrimOpacity = useTransform(scrollY, [0, 520], [0, 0.22])
+  // The hero's scroll cue fades out with it
   const cueOpacity = useTransform(scrollY, [0, 160], [1, 0])
-  // 首屏底部渐变底色：开始滑动后淡出
+  // The gradient at the bottom of the hero fades once scrolling starts
   const heroGradientOpacity = useTransform(scrollY, [0, 240], [1, 0])
-  // 磨砂右轨：进入履历区后淡入（首屏不磨砂）
+  // Frosted right rail: fades in at the résumé (the hero has no frosting)
   const vh = typeof window !== 'undefined' ? window.innerHeight : 800
   const railOpacity = useTransform(scrollY, [vh * 0.5, vh * 1.1], [0, 1])
-  // 首屏装饰画框/角标：滚动后淡出
+  // The hero's decorative frame and corner marks fade on scroll
   const heroChromeOpacity = useTransform(scrollY, [0, 280], [1, 0])
 
   return (
     <>
-      {/* 加载遮罩：模型全部加载完成前覆盖全屏，完成后淡出 */}
+      {/* Loading mask: covers the screen until the artwork has loaded, then fades */}
       <LoadingScreen />
 
-      {/* 固定的 3D 背景 */}
+      {/* Fixed illustration background */}
       <div className="scene-bg">
-        <Canvas
-          shadows={{ type: THREE.PCFShadowMap }}
-          dpr={[1, 1.5]}
-          camera={{ position: [0, 5, 19], fov: 39, near: 0.1, far: 500 }}
-          gl={{ antialias: false, stencil: false, depth: true, toneMapping: THREE.ACESFilmicToneMapping }}
-        >
-          <color attach="background" args={['#0a0e16']} />
-          <Suspense fallback={null}>
-            <Backdrop />
-            <Scene />
-          </Suspense>
-        </Canvas>
+        <Scene2D />
       </div>
 
-      {/* 滚动渐暗蒙层 */}
+      {/* Scroll-darkening overlay */}
       <motion.div className="scrim" style={{ opacity: scrimOpacity }} aria-hidden="true" />
 
-      {/* 作品区固定蒙层：仅压暗（减半），模糊先注释掉 */}
+      {/* Fixed works overlay: darkening only (halved); the blur is commented out for now */}
       <motion.div
         className="stage-fog"
         style={{ background: fogBg /* , backdropFilter: fogBlur, WebkitBackdropFilter: fogBlur */ }}
         aria-hidden="true"
       />
 
-      {/* 固定磨砂右轨（进入履历区淡入） */}
+      {/* Fixed frosted right rail, fading in at the résumé */}
       <motion.div className="glass-rail" style={{ opacity: railOpacity }} aria-hidden="true" />
 
-      {/* 首屏底部渐变底色，滚动后淡出 —— 暂时注释查看效果 */}
+      {/* Gradient under the hero, fading on scroll — commented out for now */}
       {/* <motion.div
         className="hero-gradient"
         style={{ opacity: heroGradientOpacity }}
         aria-hidden="true"
       /> */}
 
-      {/* 中英切换暂时隐藏，默认中文 */}
+      {/* Language toggle hidden for now; the site is English only */}
       {/* <LangToggle lang={lang} onToggle={() => setLang((l) => (l === 'en' ? 'zh' : 'en'))} /> */}
 
-      {/* 首屏装饰：发丝内框 + 四角定位标 + 角标元数据（随滚动淡出） */}
+      {/* Hero decoration: hairline inner frame, corner registration marks and corner
+          metadata, all fading on scroll */}
       <motion.div className="hero-chrome" style={{ opacity: heroChromeOpacity }} aria-hidden="true">
         <div className="hero-frame" />
         <span className="hero-mark tl">+</span>
@@ -170,18 +146,16 @@ export default function App() {
         <span className="hero-mark bl">+</span>
         <span className="hero-mark br">+</span>
         <div className="hero-meta hm-tl">
-          <span className="hm-name">Sen Zheng 郑越升</span>
-          <span>Creative Technologist</span>
+          <span className="hm-name">Shivani Kaushik</span>
+          <span>Brand &amp; Communication Designer</span>
         </div>
         <div className="hero-meta hm-tr">Portfolio — 2026</div>
-        <div className="hero-meta hm-bl">Code · Art · Play</div>
-        <div className="hero-meta hm-right">Based in Shenzhen</div>
+        <div className="hero-meta hm-bl">Brand · Story · Craft</div>
+        <div className="hero-meta hm-right">Based in India</div>
       </motion.div>
 
-      {/* 全屏胶片噪点蒙层（multiply 混合） */}
-      <NoiseOverlay />
 
-      {/* 可滚动内容 */}
+      {/* Scrollable content */}
       <main className="content">
         <Hero lang={lang} cueOpacity={cueOpacity} />
         <Resume lang={lang} />
