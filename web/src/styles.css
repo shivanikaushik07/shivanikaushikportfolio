@@ -305,7 +305,9 @@ canvas {
 .about-body {
   margin: 0.5em auto 0;
   max-width: min(660px, 88vw);
-  font-family: 'Nixie One', 'Chiron GoRound TC', 'PingFang SC', 'Microsoft YaHei', serif;
+  /* Century Gothic ships with Windows and with Office on macOS, so a good half of
+     visitors have it. Questrial is the geometric web fallback for the rest. */
+  font-family: 'Century Gothic', 'Questrial', 'URW Gothic', 'Futura', sans-serif;
   font-weight: 400;
   /* The floor matters more than the ceiling: 0.92vw is 3.6px on a phone, so without a
      readable minimum the whole intro collapses to unreadable type on mobile. */
@@ -2345,6 +2347,14 @@ canvas {
    text needs its own backing, so each entry gets a panel. Desktop is untouched
    and keeps the clean, unscrimmed look. */
 @media (max-width: 900px) {
+  /* Intro to the bottom of the hero: the zoom aims at the top quarter on narrow
+     screens, so the two no longer compete for the same strip of artwork. */
+  .hero {
+    justify-content: flex-end;
+    padding-top: 0;
+    padding-bottom: 4vh;
+  }
+
   .tl-body {
     background: rgba(9, 12, 18, 0.74);
     border: 1px solid rgba(255, 255, 255, 0.07);
