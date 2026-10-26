@@ -36,6 +36,11 @@ const WORKS = { scale: 1.1, x: 50, y: 55, tx: 50, ty: 50 }
 const NODE_SCREEN = { tx: 30, ty: 50 }
 const NODE_SCALE = 5.0
 
+// On a phone the résumé runs full width, so there is no empty side to push the bandage
+// into — a zoom would only hide it behind the text cards. Stay on the wide cover instead
+// and let it be the background the cards sit on. Matches the ≤640px block in styles.css.
+const NARROW = '(max-width: 640px)'
+
 export default function Scene2D() {
   const wrapRef = useRef<HTMLDivElement>(null)
   const faceRef = useRef<HTMLImageElement>(null)
@@ -57,7 +62,13 @@ export default function Scene2D() {
     }
     findEls()
 
+    const narrow = window.matchMedia(NARROW)
+
     const pickTarget = () => {
+      if (narrow.matches) {
+        Object.assign(target, HERO)
+        return
+      }
       // Pull back to the wide shot once the works section is in view
       if (gallery) {
         const r = gallery.getBoundingClientRect()

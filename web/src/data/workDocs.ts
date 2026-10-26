@@ -60,7 +60,11 @@ function parseFrontmatter(raw: string): {
 const docs: Record<string, WorkDoc> = {}
 for (const path in files) {
   const slug = path.split('/').pop()!.replace(/\.md$/, '')
-  const { data, body } = parseFrontmatter(files[path])
+  // Media is written as /works/... in the markdown, but the site can be served from a
+  // subdirectory (GitHub Pages), where a root-absolute path misses. Rewriting here covers
+  // the banner, body images, <video src> and the block fences in one go.
+  const raw = files[path].replace(/\/works\//g, `${import.meta.env.BASE_URL}works/`)
+  const { data, body } = parseFrontmatter(raw)
   docs[slug] = { slug, ...data, body } as WorkDoc
 }
 

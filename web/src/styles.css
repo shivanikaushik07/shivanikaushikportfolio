@@ -307,7 +307,9 @@ canvas {
   max-width: min(660px, 88vw);
   font-family: 'Nixie One', 'Chiron GoRound TC', 'PingFang SC', 'Microsoft YaHei', serif;
   font-weight: 400;
-  font-size: clamp(8px, 0.92vw, 13px);
+  /* The floor matters more than the ceiling: 0.92vw is 3.6px on a phone, so without a
+     readable minimum the whole intro collapses to unreadable type on mobile. */
+  font-size: clamp(12px, 0.92vw, 13px);
   line-height: 1.45;
   color: var(--ink);
 }
