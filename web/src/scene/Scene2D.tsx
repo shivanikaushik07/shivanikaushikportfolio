@@ -37,10 +37,12 @@ const NODE_SCREEN = { tx: 30, ty: 50 }
 const NODE_SCALE = 5.0
 
 // Below this the résumé runs over the artwork rather than beside it, so there is no empty
-// side to push the bandage into — a zoom would only hide it behind the text. Stay on the
-// wide cover and let it be the background the text sits on. Keep in step with the
-// matching ≤900px block in styles.css, which gives that text its backing panel.
+// side to push the bandage into. The zoom still runs, but gentler and aimed at the top of
+// the screen, above where the text panel sits. Keep in step with the matching ≤900px block
+// in styles.css, which gives that text its backing.
 const NARROW = '(max-width: 900px)'
+const NODE_SCREEN_NARROW = { tx: 50, ty: 24 }
+const NODE_SCALE_NARROW = 3.0
 
 export default function Scene2D() {
   const wrapRef = useRef<HTMLDivElement>(null)
@@ -66,10 +68,6 @@ export default function Scene2D() {
     const narrow = window.matchMedia(NARROW)
 
     const pickTarget = () => {
-      if (narrow.matches) {
-        Object.assign(target, HERO)
-        return
-      }
       // Pull back to the wide shot once the works section is in view
       if (gallery) {
         const r = gallery.getBoundingClientRect()
@@ -89,11 +87,12 @@ export default function Scene2D() {
         return
       }
       const p = POINTS[Math.min(active, POINTS.length - 1)]
-      target.scale = NODE_SCALE
+      const screen = narrow.matches ? NODE_SCREEN_NARROW : NODE_SCREEN
+      target.scale = narrow.matches ? NODE_SCALE_NARROW : NODE_SCALE
       target.x = p.x
       target.y = p.y
-      target.tx = NODE_SCREEN.tx
-      target.ty = NODE_SCREEN.ty
+      target.tx = screen.tx
+      target.ty = screen.ty
     }
 
     let raf = 0
