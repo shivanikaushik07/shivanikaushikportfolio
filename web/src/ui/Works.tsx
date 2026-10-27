@@ -37,6 +37,21 @@ const isVideo = (src: string) => /\.(mp4|webm)$/i.test(src)
 
 // Gallery cell: falls back to a numbered placeholder when the image is missing,
 // the same way section covers do.
+// autoPlay downloads the whole file the moment the page loads, even though the gallery is
+// several screens down — four looping tiles were pulling ~1.9MB against the first paint.
+// preload="none" plus this ref holds that back until the tile is actually on screen.
+function playWhenVisible(el: HTMLVideoElement | null) {
+  if (!el) return
+  const io = new IntersectionObserver(
+    ([e]) => {
+      if (e.isIntersecting) el.play().catch(() => {})
+      else el.pause()
+    },
+    { rootMargin: '200px' }
+  )
+  io.observe(el)
+}
+
 function GalleryTile({
   item,
   index,
@@ -62,12 +77,12 @@ function GalleryTile({
     return (
       <button className={cls} onClick={onOpen}>
         <video
+          ref={playWhenVisible}
           src={src}
-          autoPlay
           muted
           loop
           playsInline
-          preload="metadata"
+          preload="none"
           onError={() => setFailed(true)}
         />
       </button>
@@ -140,7 +155,7 @@ function SectionCard({
       {/* No cover, no placeholder — better to draw nothing than a big numbered box */}
       {cover && !coverError && (
         <div className="wk-card-cover">
-          <img src={cover} alt="" onError={() => setCoverError(true)} />
+          <img src={cover} alt="" loading="lazy" onError={() => setCoverError(true)} />
         </div>
       )}
       <SectionWorks section={section} data={data} onOpen={onOpen} />

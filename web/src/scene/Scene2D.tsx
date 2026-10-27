@@ -137,7 +137,7 @@ export default function Scene2D() {
         <div className="scene2d-wrap" ref={wrapRef}>
           <img
             className="scene2d-art"
-            src={`${import.meta.env.BASE_URL}scene/cover.jpg`}
+            src={`${import.meta.env.BASE_URL}scene/cover.webp`}
             alt=""
             onLoad={() => setSceneProgress(100)}
             onError={() => setSceneProgress(100)}
@@ -146,7 +146,7 @@ export default function Scene2D() {
           <img
             className="scene2d-face"
             ref={faceRef}
-            src={`${import.meta.env.BASE_URL}scene/cover-face.jpg`}
+            src={`${import.meta.env.BASE_URL}scene/cover-face.webp`}
             alt=""
             loading="lazy"
             style={{ left: `${FACE.x}%`, top: `${FACE.y}%`, width: `${FACE.w}%`, height: `${FACE.h}%` }}
